@@ -1,35 +1,26 @@
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
+import 'package:pet_adoption_assignment/core/logger/app_logger.dart';
 import 'package:pet_adoption_assignment/features/home/domain/models/pet_home.dart';
 import 'package:pet_adoption_assignment/features/home/domain/usecases/home_usecases.dart';
 
 class DetailCubit extends Cubit<DetailState> {
   DetailCubit({
-    required this.storeHomePetsUsecase,
-    required this.getHomePetsUsecase,
+    required this.adoptPetUsecase,
     required this.pet,
   }) : super(DetailInitial(pet));
 
-  final StoreHomePetsUsecase storeHomePetsUsecase;
-  final GetHomePetsUsecase getHomePetsUsecase;
+  final AdoptPetUsecase adoptPetUsecase;
   final PetHome pet;
 
-  Future<void> storeHomePets(PetHome pet) async {
+  Future<void> adoptPet(PetHome pet) async {
     emit(DetailLoading(pet));
-    final pets = await getHomePetsUsecase.call(null);
-    await pets.when(
-      success: (value) async {
-        final adoptedPet = pet.copyWith(adopted: true);
-        final list = List<PetHome>.from(value)
-          ..removeWhere((element) => element.id == pet.id)
-          ..add(adoptedPet);
-        final result = await storeHomePetsUsecase.call(list);
-        result.when(
-          success: (_) {
-            emit(DetailSuccess(adoptedPet));
-          },
-          error: (error) => emit(DetailError(pet, message: error.message)),
-        );
+    final result = await adoptPetUsecase.call(pet);
+
+    result.when(
+      success: (_) {
+        AppLog.debug('Pet adopted: ${pet.adopted}');
+        emit(DetailSuccess(pet));
       },
       error: (error) {
         emit(DetailError(pet, message: error.message));

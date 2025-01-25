@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pet_adoption_assignment/core/adaptive/adaptive_builder.dart';
@@ -18,11 +19,16 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final _searchController = TextEditingController();
+  Timer? _debounce;
 
   @override
   void initState() {
+    final homeCubit = context.read<HomeCubit>();
     _searchController.addListener(() {
-      context.read<HomeCubit>().searchPets(_searchController.text);
+      if (_debounce?.isActive ?? false) _debounce!.cancel();
+      _debounce = Timer(const Duration(milliseconds: 500), () {
+        homeCubit.searchPets(_searchController.text);
+      });
     });
     super.initState();
   }
@@ -44,8 +50,8 @@ class _HomePageState extends State<HomePage> {
                     HomeInitial() => const SliverFillRemaining(
                         child: Center(child: CircularProgressIndicator()),
                       ),
-                    HomeSuccess(:final searchedPets) => SliverToBoxAdapter(
-                        child: PetGridView(searchedPets: searchedPets),
+                    HomeSuccess(:final pets) => SliverToBoxAdapter(
+                        child: PetGridView(searchedPets: pets),
                       ),
                     HomeError(:final message) => SliverFillRemaining(
                         child: Center(child: Text(message)),
@@ -82,6 +88,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }

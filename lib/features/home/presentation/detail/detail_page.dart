@@ -26,8 +26,7 @@ class DetailProvider extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => DetailCubit(
-        getHomePetsUsecase: context.read<GetHomePetsUsecase>(),
-        storeHomePetsUsecase: context.read<StoreHomePetsUsecase>(),
+        adoptPetUsecase: context.read<AdoptPetUsecase>(),
         pet: pet,
       ),
       child: DetailPage(
@@ -144,6 +143,10 @@ class PetImage extends StatelessWidget {
     final pet = context.select(
       (DetailCubit cubit) => cubit.state.pet,
     );
+    final isAdopted = pet.adopted ||
+        context.select(
+          (DetailCubit cubit) => cubit.state is DetailSuccess,
+        );
     return Expanded(
       flex: 4,
       child: Hero(
@@ -170,7 +173,7 @@ class PetImage extends StatelessWidget {
                 ),
               ],
               image: DecorationImage(
-                colorFilter: pet.adopted
+                colorFilter: isAdopted
                     ? const ColorFilter.mode(
                         Colors.grey,
                         BlendMode.color,
@@ -267,7 +270,6 @@ class AdoptButton extends StatelessWidget {
     final isLoading = context.select(
       (DetailCubit cubit) => cubit.state is DetailLoading,
     );
-    AppLog.debug('Adopted: ${pet.adopted}');
     final isAdopted = pet.adopted ||
         context.select(
           (DetailCubit cubit) => cubit.state is DetailSuccess,
@@ -286,7 +288,7 @@ class AdoptButton extends StatelessWidget {
         },
         child: ElevatedButton(
           onPressed: !isAdopted
-              ? () => context.read<DetailCubit>().storeHomePets(pet)
+              ? () => context.read<DetailCubit>().adoptPet(pet)
               : null,
           style: ElevatedButton.styleFrom(
             minimumSize: const Size(

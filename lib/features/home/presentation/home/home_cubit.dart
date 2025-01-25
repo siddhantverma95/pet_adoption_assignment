@@ -4,9 +4,13 @@ import 'package:pet_adoption_assignment/features/home/domain/models/pet_home.dar
 import 'package:pet_adoption_assignment/features/home/domain/usecases/home_usecases.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit({required this.getHomePetsUsecase}) : super(const HomeInitial(0));
+  HomeCubit({
+    required this.getHomePetsUsecase,
+    required this.searchPetsUsecase,
+  }) : super(const HomeInitial(0));
 
   final GetHomePetsUsecase getHomePetsUsecase;
+  final SearchPetsUsecase searchPetsUsecase;
 
   void changeIndex(int index) {
     emit(state.copyWith(index: index));
@@ -17,8 +21,7 @@ class HomeCubit extends Cubit<HomeState> {
 
     result.when(
       success: (data) {
-        final sortedData = data..sort((a, b) => a.name.compareTo(b.name));
-        emit(HomeSuccess(state.index, sortedData, sortedData));
+        emit(HomeSuccess(state.index, data));
       },
       error: (error) => emit(HomeError(state.index, error.message)),
     );
@@ -27,13 +30,11 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> searchPets(String query) async {
     final currentState = state;
     if (currentState is HomeSuccess) {
-      final searchedPets = currentState.pets
-          .where(
-            (element) =>
-                element.name.toLowerCase().contains(query.toLowerCase()),
-          )
-          .toList();
-      emit(HomeSuccess(state.index, currentState.pets, searchedPets));
+      final searchResult = await searchPetsUsecase.call(query);
+      searchResult.when(
+        success: (value) => emit(HomeSuccess(state.index, value)),
+        error: (error) => emit(HomeError(state.index, error.message)),
+      );
     }
   }
 }
@@ -60,20 +61,20 @@ final class HomeInitial extends HomeState {
 }
 
 final class HomeSuccess extends HomeState {
-  const HomeSuccess(super.index, this.pets, this.searchedPets);
+  const HomeSuccess(
+    super.index,
+    this.pets,
+  );
   final List<PetHome> pets;
-  final List<PetHome> searchedPets;
 
   @override
   HomeSuccess copyWith({
     int? index,
     List<PetHome>? pets,
-    List<PetHome>? searchedPets,
   }) {
     return HomeSuccess(
       index ?? this.index,
       pets ?? this.pets,
-      searchedPets ?? this.searchedPets,
     );
   }
 }

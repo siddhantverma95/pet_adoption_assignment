@@ -18,4 +18,12 @@ mixin UsecaseModule on RepositoryModule {
   StoreThemeModeUsecase get storeThemeUsecase {
     return StoreThemeModeUsecase(repository: settingsRepository);
   }
+
+  SearchPetsUsecase get searchPetUsecase {
+    return SearchPetsUsecase(homeRepository: homeRepository);
+  }
+
+  AdoptPetUsecase get adoptedPetsUsecase {
+    return AdoptPetUsecase(homeRepository: homeRepository);
+  }
 }

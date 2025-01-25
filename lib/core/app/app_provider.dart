@@ -32,6 +32,7 @@ class _AppProviderState extends State<AppProvider>
         RepositoryProvider(create: (context) => homeUsecase),
         RepositoryProvider(create: (context) => themeModeUsecase),
         RepositoryProvider(create: (context) => storeThemeUsecase),
+        RepositoryProvider(create: (context) => adoptedPetsUsecase),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -44,6 +45,7 @@ class _AppProviderState extends State<AppProvider>
           BlocProvider(
             create: (context) => HomeCubit(
               getHomePetsUsecase: homeUsecase,
+              searchPetsUsecase: searchPetUsecase,
             )..getHomePets(),
           ),
           BlocProvider(

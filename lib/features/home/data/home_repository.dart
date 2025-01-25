@@ -13,7 +13,7 @@ class HomeRepository extends HomeRepositoryType {
   @override
   Future<Result<Failure, List<PetResponse>>> getHomeData() async {
     final petData = cache.getStoredList(homeDataKey);
-    await Future<void>.delayed(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(seconds: 1));
     if (petData != null) {
       final pets = petData
           .map((e) => PetResponse.fromJson(e as Map<String, dynamic>))
